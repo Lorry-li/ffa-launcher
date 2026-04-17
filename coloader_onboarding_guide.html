@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Co-loader 新建操作指南 — Core.flexport.com</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap');
+:root{--navy:#0f1d35;--navy2:#1a2f50;--blue:#1e40af;--blue2:#3b82f6;--blue-pale:#eff6ff;--accent:#f59e0b;--accent-light:#fef3c7;--green:#059669;--green-light:#d1fae5;--red:#dc2626;--red-light:#fee2e2;--purple:#5048e5;--purple-light:#ede9fe;--g50:#f9fafb;--g100:#f3f4f6;--g200:#e5e7eb;--g300:#d1d5db;--g400:#9ca3af;--g500:#6b7280;--g700:#374151;--g900:#111827;--fp-purple:#5141E5;--fp-nav:#1c2333}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans',sans-serif;background:#f0f2f5;color:var(--g900);line-height:1.65;font-size:15px}
+.doc-header{background:var(--navy);padding:52px 0 38px;position:relative;overflow:hidden}
+.doc-header::before{content:'';position:absolute;top:-80px;right:-60px;width:500px;height:500px;background:radial-gradient(circle,rgba(59,130,246,.15) 0%,transparent 65%);border-radius:50%}
+.doc-header::after{content:'';position:absolute;bottom:-60px;left:5%;width:300px;height:300px;background:radial-gradient(circle,rgba(245,158,11,.08) 0%,transparent 65%);border-radius:50%}
+.hdr-inner{max-width:960px;margin:0 auto;padding:0 40px;position:relative;z-index:1}
+.hdr-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:4px 14px;font-size:11.5px;font-weight:500;color:rgba(255,255,255,.65);letter-spacing:.05em;text-transform:uppercase;margin-bottom:18px}
+.hdr-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.doc-header h1{font-size:34px;font-weight:700;color:#fff;letter-spacing:-.025em;line-height:1.18;margin-bottom:12px}
+.doc-header h1 em{font-style:normal;color:#60a5fa}
+.hdr-sub{font-size:15.5px;color:rgba(255,255,255,.5);max-width:540px;line-height:1.6}
+.hdr-meta{display:flex;gap:28px;margin-top:30px;padding-top:24px;border-top:1px solid rgba(255,255,255,.07);flex-wrap:wrap}
+.meta-item{display:flex;flex-direction:column;gap:3px}
+.meta-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.3);font-weight:600}
+.meta-value{font-size:13px;color:rgba(255,255,255,.65);font-weight:500}
+.doc-body{max-width:960px;margin:0 auto;padding:44px 40px 90px}
+.toc-card{background:#fff;border:1px solid var(--g200);border-radius:12px;padding:26px 30px;margin-bottom:44px;box-shadow:0 1px 4px rgba(0,0,0,.07)}
+.toc-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--g400);margin-bottom:16px}
+.toc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.toc-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;transition:background .15s;text-decoration:none}
+.toc-item:hover{background:var(--blue-pale)}
+.toc-num{width:24px;height:24px;border-radius:50%;background:var(--navy);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.toc-label{font-size:13.5px;font-weight:500;color:var(--g700)}
+.toc-item:hover .toc-label{color:var(--blue)}
+.callout{display:flex;gap:12px;padding:14px 18px;border-radius:8px;margin-bottom:24px;border-left:4px solid;font-size:14px;line-height:1.6}
+.callout.warn{background:var(--accent-light);border-color:var(--accent);color:#78350f}
+.callout.info{background:var(--blue-pale);border-color:var(--blue2);color:#1e40af}
+.callout.ok{background:var(--green-light);border-color:var(--green);color:#065f46}
+.callout strong{display:block;margin-bottom:3px;font-weight:600}
+.ci{font-size:17px;flex-shrink:0;margin-top:1px}
+.step-card{background:#fff;border:1px solid var(--g200);border-radius:12px;margin-bottom:36px;box-shadow:0 2px 8px rgba(0,0,0,.07);overflow:hidden}
+.step-hdr{display:flex;align-items:center;gap:16px;padding:20px 28px;background:var(--g50);border-bottom:1px solid var(--g100)}
+.snum{width:38px;height:38px;border-radius:50%;background:var(--navy);color:#fff;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stag{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--g400);margin-bottom:3px}
+.stitle{font-size:17.5px;font-weight:600;color:var(--g900)}
+.step-body{padding:26px 28px}
+.step-desc{color:var(--g700);margin-bottom:22px;font-size:14.5px;line-height:1.72}
+.url-bar{display:flex;align-items:center;gap:8px;background:var(--g100);border:1px solid var(--g200);border-radius:8px;padding:9px 16px;margin:16px 0;font-size:13px;font-family:'IBM Plex Mono',monospace;color:var(--blue)}
+.url-bar .lk{color:var(--green)}
+.sc-wrap{margin:20px 0;border-radius:10px;overflow:hidden;border:1px solid var(--g200);box-shadow:0 3px 12px rgba(0,0,0,.10)}
+.sc-bar{background:#e8eaed;border-bottom:1px solid #d0d3d8;padding:8px 14px;display:flex;align-items:center;gap:10px}
+.sc-dots{display:flex;gap:5px}
+.sc-dots span{width:11px;height:11px;border-radius:50%}
+.sc-dots .dr{background:#fc5f57}.sc-dots .dy{background:#fdbb2f}.sc-dots .dg{background:#27c840}
+.sc-url{font-size:11.5px;font-family:'IBM Plex Mono',monospace;color:#5f6368;background:#fff;border:1px solid #dadce0;border-radius:12px;padding:3px 12px;flex:1;max-width:440px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc-cap{font-size:12.5px;color:var(--g500);text-align:center;padding:8px 16px;background:var(--g50);border-top:1px solid var(--g100);font-style:italic}
+.ftable{width:100%;border-collapse:collapse;margin:18px 0;font-size:13.5px;border-radius:8px;overflow:hidden;border:1px solid var(--g200)}
+.ftable th{background:var(--navy);color:#fff;text-align:left;padding:11px 16px;font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.ftable td{padding:11px 16px;border-bottom:1px solid var(--g100);vertical-align:top;line-height:1.55}
+.ftable tr:last-child td{border-bottom:none}
+.ftable tr:nth-child(even) td{background:var(--g50)}
+.fn{font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:500;color:var(--blue)}
+.br{display:inline-block;background:var(--red-light);color:var(--red);border-radius:4px;padding:1px 6px;font-size:10.5px;font-weight:700;margin-left:5px;vertical-align:middle}
+.bo{display:inline-block;background:var(--g100);color:var(--g500);border-radius:4px;padding:1px 6px;font-size:10.5px;font-weight:700;margin-left:5px;vertical-align:middle}
+.ssteps{list-style:none;display:flex;flex-direction:column;gap:10px;margin:18px 0}
+.ssteps li{display:flex;gap:12px;align-items:flex-start;font-size:14px;color:var(--g700);padding:11px 15px;background:var(--g50);border-radius:8px;border:1px solid var(--g100);line-height:1.58}
+.si{width:25px;height:25px;border-radius:50%;background:var(--blue-pale);color:var(--blue);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.ssteps li code{font-family:'IBM Plex Mono',monospace;font-size:12px;background:var(--g200);padding:1px 5px;border-radius:3px;color:var(--navy)}
+.annot{background:var(--purple-light);border-left:4px solid var(--purple);border-radius:0 8px 8px 0;padding:12px 16px;margin:14px 0;font-size:13.5px;color:#3730a3;line-height:1.6}
+.summary{background:var(--navy);border-radius:12px;padding:30px 34px;color:#fff;margin-top:44px}
+.summary h3{font-size:16px;font-weight:600;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.sitem{background:rgba(255,255,255,.07);border-radius:8px;padding:14px 18px;display:flex;gap:11px;align-items:flex-start}
+.sicon{font-size:17px;flex-shrink:0;margin-top:2px}
+.stext{font-size:13px;color:rgba(255,255,255,.7);line-height:1.55}
+.stext strong{display:block;color:#fff;font-size:14px;margin-bottom:3px}
+.refs{background:#fff;border:1px solid var(--g200);border-radius:12px;padding:26px 30px;margin-top:30px}
+.refs h3{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--g400);margin-bottom:16px}
+.rlist{list-style:none;display:flex;flex-direction:column;gap:9px}
+.rlist li{display:flex;gap:10px;align-items:baseline;font-size:13px;color:var(--g700)}
+.rlist li span{color:var(--g300);font-size:12px;min-width:24px}
+.rlist a{color:var(--blue);text-decoration:none}
+.rlist a:hover{text-decoration:underline}
+/* ── UI MOCKUP styles ── */
+.mk{font-family:'IBM Plex Sans',sans-serif;width:100%;background:#fff}
+.fp-nav{background:#1c2333;height:44px;display:flex;align-items:center;padding:0 20px;gap:0}
+.fp-logo{display:flex;align-items:center;gap:6px;margin-right:14px}
+.fp-logo strong{color:#fff;font-size:14px;font-weight:700}
+.fp-logo span{color:rgba(255,255,255,.45);font-size:12px}
+.fp-vline{width:1px;height:18px;background:rgba(255,255,255,.15);margin:0 10px}
+.nav-item{color:rgba(255,255,255,.6);font-size:12.5px;padding:6px 10px;border-radius:5px;cursor:pointer;display:flex;align-items:center;gap:3px;white-space:nowrap}
+.nav-item.on{background:rgba(255,255,255,.13);color:#fff}
+.nav-r{margin-left:auto;display:flex;align-items:center}
+.nav-search{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:5px 12px;color:rgba(255,255,255,.45);font-size:12px;width:150px}
+.tb{background:#fff;border-bottom:1px solid var(--g200);padding:10px 20px;display:flex;align-items:center;justify-content:space-between}
+.add-btn{background:#5141E5;color:#fff;border:none;border-radius:5px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:.01em}
+.type-filter{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--g500)}
+.pill{background:#fff;border:1px solid var(--g200);border-radius:6px;padding:4px 10px;font-size:12px;color:var(--g700);display:flex;align-items:center;gap:4px}
+.pag{font-size:12px;color:var(--g500);display:flex;align-items:center;gap:5px}
+.pag-btn{width:22px;height:22px;background:#fff;border:1px solid var(--g200);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--g500)}
+.sp-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.sp-table th{text-align:left;padding:9px 18px;font-size:11px;font-weight:600;color:var(--g500);border-bottom:2px solid var(--g100);text-transform:uppercase;letter-spacing:.04em;background:#fff}
+.sp-table td{padding:9px 18px;border-bottom:1px solid var(--g100);color:var(--g700)}
+.sp-table tr:hover td{background:#fafafa}
+.sp-link{color:#3b82f6;font-weight:500}
+.sp-tag{display:inline-block;background:var(--g100);color:var(--g700);border-radius:4px;padding:2px 7px;font-size:11px;font-weight:500}
+/* Modal */
+.modal-bg{background:rgba(0,0,0,.38);padding:28px 20px;display:flex;align-items:center;justify-content:center}
+.modal{background:#fff;border-radius:8px;padding:26px 28px;width:370px;box-shadow:0 20px 60px rgba(0,0,0,.28);position:relative}
+.modal-title{font-size:16.5px;font-weight:600;color:var(--g900);margin-bottom:4px}
+.modal-sep{height:1px;background:var(--g100);margin:14px 0}
+.modal-close{position:absolute;top:16px;right:16px;width:24px;height:24px;border-radius:50%;background:var(--g100);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--g400);cursor:pointer}
+.mf{margin-bottom:14px}
+.ml{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--g500);margin-bottom:6px;display:block}
+.mi{width:100%;border:1px solid var(--g200);border-radius:5px;padding:8px 11px;font-size:13px;color:var(--g700);font-family:inherit}
+.ms{width:100%;border:1px solid var(--g200);border-radius:5px;padding:8px 30px 8px 11px;font-size:13px;color:var(--g700);font-family:inherit;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b7280'/%3E%3C/svg%3E") no-repeat right 10px center;appearance:none;-webkit-appearance:none}
+.ms.hl{border-color:#5141E5;box-shadow:0 0 0 2px rgba(81,65,229,.15)}
+.mbtns{display:flex;justify-content:flex-end;gap:10px;margin-top:8px}
+.mbtn-c{background:#fff;border:1px solid var(--g200);border-radius:5px;padding:8px 18px;font-size:13px;font-weight:500;color:var(--g700);cursor:pointer;font-family:inherit}
+.mbtn-s{background:#5141E5;border:none;border-radius:5px;padding:8px 22px;font-size:13px;font-weight:600;color:#fff;cursor:pointer;font-family:inherit}
+.mbtn-s:hover{background:#4338ca}
+/* Rate manager */
+.rm-layout{display:flex;height:280px}
+.rm-side{width:210px;background:#fff;border-right:1px solid var(--g200);flex-shrink:0;overflow-y:auto}
+.rm-side-hdr{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--g100)}
+.rm-title{font-size:14.5px;font-weight:700;color:var(--g900)}
+.rm-btns{display:flex;gap:4px}
+.rm-btn{width:26px;height:26px;background:#fff;border:1px solid var(--g200);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--g500);cursor:pointer;position:relative}
+.rm-btn.plus{font-size:16px;font-weight:700;color:var(--g700)}
+.rm-item{padding:9px 14px;border-bottom:1px solid #f4f5f7;cursor:pointer}
+.rm-item:hover{background:var(--g50)}
+.rm-iname{font-size:12.5px;font-weight:500;color:var(--g700);margin-bottom:2px}
+.rm-imeta{font-size:11px;color:var(--g400)}
+.rm-istatus{display:flex;align-items:center;gap:4px;margin-top:3px;font-size:11px;font-weight:600}
+.rm-istatus .d{width:7px;height:7px;border-radius:50%}
+.ok{color:#059669}.ok .d{background:#059669}
+.fail{color:#dc2626}.fail .d{background:#dc2626}
+.rm-main{flex:1;background:var(--g50);display:flex;align-items:center;justify-content:center;color:var(--g400);font-size:13px}
+/* annotation helpers */
+.redring{position:absolute;inset:-3px;border:2.5px solid #ef4444;border-radius:6px;pointer-events:none;box-shadow:0 0 0 3px rgba(239,68,68,.12)}
+.badge-r{background:#ef4444;color:#fff;border-radius:50%;width:19px;height:19px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;box-shadow:0 2px 5px rgba(0,0,0,.25)}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(1.08)}}
+@media(max-width:640px){.doc-body{padding:24px 18px 60px}.hdr-inner{padding:0 18px}.sgrid{grid-template-columns:1fr}.toc-grid{grid-template-columns:1fr}.step-body,.step-hdr{padding:18px 16px}}
+</style>
+</head>
+<body>
+
+<header class="doc-header">
+  <div class="hdr-inner">
+    <div class="hdr-badge"><span class="dot"></span>操作指南 · LCL 产品团队</div>
+    <h1>在 Core 中创建新 <em>Co-loader</em></h1>
+    <p class="hdr-sub">本指南提供在 core.flexport.com 中完整新建一个 Co-loader（共装商）的逐步操作说明，附 UI 截图对照。</p>
+    <div class="hdr-meta">
+      <div class="meta-item"><span class="meta-label">系统</span><span class="meta-value">core.flexport.com</span></div>
+      <div class="meta-item"><span class="meta-label">Service Provider 类型</span><span class="meta-value">Freight Partner → Co-loader</span></div>
+      <div class="meta-item"><span class="meta-label">更新日期</span><span class="meta-value">2026 年 4 月</span></div>
+      <div class="meta-item"><span class="meta-label">权限要求</span><span class="meta-value">core:partner_write</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="doc-body">
+
+  <div class="callout warn">
+    <span class="ci">⚠️</span>
+    <div><strong>前置权限要求</strong>您的账号需具备 <code style="font-family:monospace;background:#fde68a;padding:1px 6px;border-radius:3px;font-size:12.5px;">core:partner_write</code> 权限才能创建或编辑 Service Provider。如没有此权限，请联系您的直属经理或 IT 团队申请。</div>
+  </div>
+
+  <div class="toc-card">
+    <div class="toc-title">📋 操作步骤总览</div>
+    <div class="toc-grid">
+      <a class="toc-item" href="#s1"><span class="toc-num">1</span><span class="toc-label">进入 Network → Service Providers</span></a>
+      <a class="toc-item" href="#s2"><span class="toc-num">2</span><span class="toc-label">点击「Add Service Provider」</span></a>
+      <a class="toc-item" href="#s3"><span class="toc-num">3</span><span class="toc-label">填写 Co-loader 基本信息</span></a>
+      <a class="toc-item" href="#s4"><span class="toc-num">4</span><span class="toc-label">Submit 提交并确认档案</span></a>
+      <a class="toc-item" href="#s5"><span class="toc-num">5</span><span class="toc-label">上传费率表（Rate Ingestion）</span></a>
+    </div>
+  </div>
+
+  <!-- ════════ STEP 1 ════════ -->
+  <div class="step-card" id="s1">
+    <div class="step-hdr">
+      <div class="snum">1</div>
+      <div><div class="stag">导航</div><div class="stitle">进入 Network → Service Providers 页面</div></div>
+    </div>
+    <div class="step-body">
+      <p class="step-desc">登录 Core 后，在顶部导航栏点击 <strong>Network</strong>（深色背景高亮），进入 Service Providers 列表。所有 Co-loader 均以 <em>Freight Partner</em> 类型列示于此。</p>
+      <div class="url-bar"><span class="lk">🔒</span>&nbsp;https://core.flexport.com/partners</div>
+
+      <!-- Mockup 1 -->
+      <div class="sc-wrap">
+        <div class="sc-bar">
+          <div class="sc-dots"><span class="dr"></span><span class="dy"></span><span class="dg"></span></div>
+          <div class="sc-url">core.flexport.com/partners</div>
+        </div>
+        <div class="mk">
+          <!-- nav -->
+          <div class="fp-nav">
+            <div class="fp-logo"><strong>flexport</strong><span>Core</span></div>
+            <div class="fp-vline"></div>
+            <div class="nav-item">Logistics ▾</div>
+            <div class="nav-item on">Network ▾</div>
+            <div class="nav-item">Marketplace ▾</div>
+            <div class="nav-item">Setup ▾</div>
+            <div class="nav-r"><div class="nav-search">Search (/)</div></div>
+          </div>
+          <!-- toolbar -->
+          <div class="tb" style="position:relative">
+            <div style="display:flex;align-items:center;gap:10px">
+              <button class="add-btn">Add Service Provider</button>
+              <!-- annotation badge -->
+              <div style="display:flex;align-items:center;gap:6px">
+                <div class="badge-r" style="flex-shrink:0">①</div>
+                <span style="font-size:11.5px;color:var(--g500)">点击此处新建 Co-loader</span>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px">
+              <div class="type-filter">
+                <span>SERVICE PROVIDER TYPES:</span>
+                <div class="pill">Freight Partner ▾</div>
+              </div>
+              <div class="pag">1–30 <div class="pag-btn">‹</div><div class="pag-btn">›</div></div>
+            </div>
+          </div>
+          <!-- table -->
+          <table class="sp-table">
+            <thead><tr><th>Company Name ▴</th><th>SCAC ▴</th><th>Company Type</th><th>Contact</th><th>Email</th></tr></thead>
+            <tbody>
+              <tr><td><span class="sp-link">Vanguard Logistics Services</span></td><td>VLSG</td><td><span class="sp-tag">Freight Partner</span></td><td></td><td></td></tr>
+              <tr><td><span class="sp-link">ECU Worldwide</span></td><td>ECUW</td><td><span class="sp-tag">Freight Partner</span></td><td></td><td></td></tr>
+              <tr><td><span class="sp-link">Shipco Transport</span></td><td>SHPC</td><td><span class="sp-tag">Freight Partner</span></td><td></td><td></td></tr>
+              <tr><td><span class="sp-link">AMASS Logistics</span></td><td></td><td><span class="sp-tag">Freight Partner</span></td><td></td><td></td></tr>
+              <tr><td><span class="sp-link">American Marine Express</span></td><td>AMXQ</td><td><span class="sp-tag">Freight Partner / Carrier</span></td><td></td><td></td></tr>
+              <tr><td><span class="sp-link">SEKO Logistics</span></td><td></td><td><span class="sp-tag">Freight Partner</span></td><td></td><td></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="sc-cap">↑ core.flexport.com/partners — ① 左上角蓝紫色「Add Service Provider」按钮；右上 SERVICE PROVIDER TYPES 已筛选「Freight Partner」（Co-loader 所属类型）</div>
+      </div>
+
+      <div class="annot">💡 <strong>说明：</strong>页面右上角的 <em>SERVICE PROVIDER TYPES</em> 默认筛选「Freight Partner」。现有 Co-loader（Shipco、ECU、Vanguard、AMASS）全部属于此类型，新建时也应选此类型。</div>
+    </div>
+  </div>
+
+  <!-- ════════ STEP 2 ════════ -->
+  <div class="step-card" id="s2">
+    <div class="step-hdr">
+      <div class="snum">2</div>
+      <div><div class="stag">操作</div><div class="stitle">点击「Add Service Provider」按钮</div></div>
+    </div>
+    <div class="step-body">
+      <p class="step-desc">在 Service Providers 列表页的<strong>左上角</strong>找到蓝紫色「<strong>Add Service Provider</strong>」按钮，点击后系统将弹出新建表单。</p>
+
+      <div class="sc-wrap">
+        <div class="sc-bar">
+          <div class="sc-dots"><span class="dr"></span><span class="dy"></span><span class="dg"></span></div>
+          <div class="sc-url">core.flexport.com/partners — 按钮位置</div>
+        </div>
+        <div class="mk" style="padding:0">
+          <div class="fp-nav" style="height:38px">
+            <div class="fp-logo"><strong>flexport</strong><span>Core</span></div>
+            <div class="fp-vline"></div>
+            <div class="nav-item">Logistics ▾</div>
+            <div class="nav-item on">Network ▾</div>
+            <div class="nav-item">Marketplace ▾</div>
+          </div>
+          <div style="padding:16px 20px;background:#fff;border-bottom:1px solid var(--g200);display:flex;align-items:center;gap:20px">
+            <div style="position:relative;display:inline-block">
+              <button class="add-btn" style="font-size:13.5px;padding:9px 20px;box-shadow:0 2px 10px rgba(81,65,229,.45)">Add Service Provider</button>
+              <div style="position:absolute;inset:-4px;border:2.5px solid #ef4444;border-radius:8px;animation:pulse 1.6s infinite"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <svg width="22" height="14" viewBox="0 0 22 14" fill="none"><path d="M20 7H2M2 7L8 1M2 7l6 6" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span style="font-size:12.5px;color:#ef4444;font-weight:600">点击此蓝紫色按钮打开新建表单</span>
+            </div>
+          </div>
+          <div style="padding:12px 20px;background:var(--g50);font-size:12px;color:var(--g500)">
+            ℹ️ 如看不到此按钮，表示账号缺少 <code style="font-family:monospace;background:var(--g200);padding:1px 5px;border-radius:3px">core:partner_write</code> 权限，请联系经理申请。
+          </div>
+        </div>
+        <div class="sc-cap">↑ 蓝紫色「Add Service Provider」按钮（红框标注），位于 Service Providers 列表页左上角</div>
+      </div>
+
+      <div class="callout info">
+        <span class="ci">ℹ️</span>
+        <div><strong>找不到按钮？</strong>账号缺少 <code style="font-family:monospace;background:#bfdbfe;padding:1px 5px;border-radius:3px;font-size:12px;">core:partner_write</code> 权限时按钮不可见，请联系经理提交权限申请。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ STEP 3 ════════ -->
+  <div class="step-card" id="s3">
+    <div class="step-hdr">
+      <div class="snum">3</div>
+      <div><div class="stag">填写信息</div><div class="stitle">在弹窗中填写 Co-loader 基本信息</div></div>
+    </div>
+    <div class="step-body">
+      <p class="step-desc">点击按钮后弹出「<strong>Add a New Service Provider</strong>」表单，按以下说明逐字段填写。</p>
+
+      <!-- Mockup 3: Full modal with annotations -->
+      <div class="sc-wrap">
+        <div class="sc-bar">
+          <div class="sc-dots"><span class="dr"></span><span class="dy"></span><span class="dg"></span></div>
+          <div class="sc-url">core.flexport.com/partners — Add a New Service Provider</div>
+        </div>
+        <div class="mk" style="padding:0">
+          <!-- blurred bg -->
+          <div style="position:relative">
+            <div style="position:absolute;inset:0;overflow:hidden;opacity:.15">
+              <div style="height:38px;background:#1c2333"></div>
+              <div style="height:40px;background:#fff;border-bottom:1px solid var(--g200)"></div>
+              <div style="height:30px;background:#fff;border-bottom:2px solid var(--g100)"></div>
+              <div style="height:30px;background:#fff"></div>
+              <div style="height:30px;background:#f9fafb"></div>
+              <div style="height:30px;background:#fff"></div>
+            </div>
+            <div class="modal-bg" style="position:relative;z-index:1;min-height:540px">
+              <div class="modal">
+                <div class="modal-close">✕</div>
+                <div class="modal-title">Add a New Service Provider</div>
+                <div class="modal-sep"></div>
+
+                <!-- Field 1: Type -->
+                <div class="mf">
+                  <label class="ml">Service Provider Type</label>
+                  <div style="position:relative">
+                    <select class="ms hl">
+                      <option selected>Freight Partner</option>
+                      <option>Carrier</option>
+                      <option>Fulfillment Center</option>
+                    </select>
+                    <div class="redring"></div>
+                  </div>
+                  <div style="margin-top:5px;font-size:11px;color:#5141E5;font-weight:600;display:flex;align-items:center;gap:4px">
+                    <span>✅</span> Co-loader 必须选 <strong>Freight Partner</strong>（默认值，勿更改）
+                  </div>
+                </div>
+
+                <!-- Field 2: Company Name -->
+                <div class="mf">
+                  <label class="ml">Company Name <span style="color:var(--red);font-size:12px">*必填</span></label>
+                  <input class="mi" type="text" placeholder="例：ECU Worldwide / Shipco Transport">
+                </div>
+
+                <!-- Field 3: Website -->
+                <div class="mf">
+                  <label class="ml">Company Website</label>
+                  <input class="mi" type="text" placeholder="https://www.example.com（选填）">
+                </div>
+
+                <!-- Field 4: Countries -->
+                <div class="mf">
+                  <label class="ml">Countries</label>
+                  <select class="ms">
+                    <option selected>Global</option>
+                    <option>United States</option>
+                    <option>China</option>
+                    <option>Singapore</option>
+                  </select>
+                </div>
+
+                <!-- Field 5: SCAC -->
+                <div class="mf">
+                  <label class="ml">SCAC Code</label>
+                  <input class="mi" type="text" placeholder="如：ECUW（选填，强烈建议填写）">
+                </div>
+
+                <!-- Checkbox -->
+                <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--g700);margin-bottom:18px">
+                  <div style="width:14px;height:14px;border:1.5px solid var(--g300);border-radius:3px;background:#fff;flex-shrink:0"></div>
+                  Is Demo Agent
+                  <span style="font-size:11px;color:var(--red);font-weight:600">← 正式 Co-loader 勿勾选</span>
+                </div>
+
+                <div class="mbtns">
+                  <button class="mbtn-c">Cancel</button>
+                  <div style="position:relative">
+                    <button class="mbtn-s">Submit</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Annotation callouts on right side -->
+              <div style="display:flex;flex-direction:column;gap:8px;max-width:200px;margin-left:16px">
+                <div style="background:rgba(239,68,68,.95);color:#fff;border-radius:6px;padding:7px 10px;font-size:11.5px;line-height:1.4">
+                  <strong>A</strong> 下拉选 <em>Freight Partner</em><br>（默认已选，勿改）
+                </div>
+                <div style="background:rgba(81,65,229,.9);color:#fff;border-radius:6px;padding:7px 10px;font-size:11.5px;line-height:1.4;margin-top:28px">
+                  <strong>B</strong> 填写公司全称<br>须与合同一致
+                </div>
+                <div style="background:rgba(81,65,229,.7);color:#fff;border-radius:6px;padding:7px 10px;font-size:11.5px;line-height:1.4;margin-top:28px">
+                  <strong>C</strong> 官网（选填）
+                </div>
+                <div style="background:rgba(81,65,229,.7);color:#fff;border-radius:6px;padding:7px 10px;font-size:11.5px;line-height:1.4;margin-top:14px">
+                  <strong>D</strong> 覆盖地区<br>全球选 Global
+                </div>
+                <div style="background:rgba(81,65,229,.7);color:#fff;border-radius:6px;padding:7px 10px;font-size:11.5px;line-height:1.4;margin-top:14px">
+                  <strong>E</strong> SCAC Code<br>强烈建议填写
+                </div>
+                <div style="background:rgba(107,114,128,.8);color:#fff;border-radius:6px;padding:7px 10px;font-size:11.5px;line-height:1.4;margin-top:10px">
+                  <strong>F</strong> 勿勾选
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="sc-cap">↑ 「Add a New Service Provider」弹窗（基于真实 Core 界面还原）— 红框 A 为关键字段，其余字段按侧边注释填写</div>
+      </div>
+
+      <!-- Field table -->
+      <p style="font-weight:600;margin:22px 0 12px;font-size:14px;color:var(--g900)">各字段填写说明：</p>
+      <table class="ftable">
+        <thead><tr><th>字段</th><th>说明</th><th>Co-loader 填写值</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="fn">SERVICE PROVIDER TYPE</span><span class="br">必填</span></td>
+            <td>决定该 Service Provider 在系统内的角色</td>
+            <td>✅ 选 <strong>Freight Partner</strong>（默认已选，勿更改）</td>
+          </tr>
+          <tr>
+            <td><span class="fn">COMPANY NAME</span><span class="br">必填</span></td>
+            <td>Co-loader 完整法定公司名，须与合同一致</td>
+            <td>如：<em>Shipco Transport</em> / <em>ECU Worldwide</em> / <em>AMASS Logistics</em></td>
+          </tr>
+          <tr>
+            <td><span class="fn">COMPANY WEBSITE</span><span class="bo">选填</span></td>
+            <td>Co-loader 官方网站</td>
+            <td>如：<em>https://www.shipco.com</em></td>
+          </tr>
+          <tr>
+            <td><span class="fn">COUNTRIES</span><span class="br">必填</span></td>
+            <td>Co-loader 业务覆盖地区</td>
+            <td>全球运营选 <strong>Global</strong>（默认）；区域性合作商选具体国家</td>
+          </tr>
+          <tr>
+            <td><span class="fn">SCAC CODE</span><span class="bo">建议填写</span></td>
+            <td>Standard Carrier Alpha Code，影响费率 CSV 自动映射</td>
+            <td>向 Co-loader 索取或查 <a href="https://nmfta.org" target="_blank" style="color:var(--blue)">NMFTA 官网</a></td>
+          </tr>
+          <tr>
+            <td><span class="fn">Is Demo Agent</span><span class="bo">选填</span></td>
+            <td>标记为测试账号</td>
+            <td>❌ <strong>勿勾选</strong>（正式 Co-loader）</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout warn">
+        <span class="ci">⚠️</span>
+        <div><strong>提交前必查：避免重复创建</strong>在 Service Providers 列表搜索该公司名，确认无重复记录。重复创建会导致费率映射混乱，影响发票核对和数据分析。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ STEP 4 ════════ -->
+  <div class="step-card" id="s4">
+    <div class="step-hdr">
+      <div class="snum">4</div>
+      <div><div class="stag">提交</div><div class="stitle">点击「Submit」提交并确认档案创建</div></div>
+    </div>
+    <div class="step-body">
+      <p class="step-desc">所有字段确认无误后，点击弹窗右下角的蓝色 <strong>Submit</strong> 按钮，系统将自动创建该 Co-loader 的 Service Provider 档案并分配唯一 ID。</p>
+
+      <div class="sc-wrap">
+        <div class="sc-bar">
+          <div class="sc-dots"><span class="dr"></span><span class="dy"></span><span class="dg"></span></div>
+          <div class="sc-url">core.flexport.com/partners — 点击 Submit 提交</div>
+        </div>
+        <div class="mk" style="padding:0">
+          <div class="modal-bg" style="padding:28px 40px;background:rgba(0,0,0,.35)">
+            <div class="modal" style="width:370px">
+              <div style="font-size:13px;color:var(--g400);margin-bottom:14px;font-style:italic">… 字段填写完成后 …</div>
+              <div class="modal-sep"></div>
+              <!-- filled field preview -->
+              <div style="margin-bottom:10px;padding:8px 11px;background:var(--g50);border:1px solid var(--g100);border-radius:5px;font-size:12.5px">
+                <span style="color:var(--g400);font-size:11px;text-transform:uppercase;letter-spacing:.05em">Company Name</span><br>
+                <strong style="color:var(--g900)">ECU Worldwide</strong>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+                <div style="padding:8px 11px;background:var(--g50);border:1px solid var(--g100);border-radius:5px;font-size:12px">
+                  <span style="color:var(--g400);font-size:10px;text-transform:uppercase">Type</span><br>
+                  <strong>Freight Partner</strong>
+                </div>
+                <div style="padding:8px 11px;background:var(--g50);border:1px solid var(--g100);border-radius:5px;font-size:12px">
+                  <span style="color:var(--g400);font-size:10px;text-transform:uppercase">SCAC</span><br>
+                  <strong>ECUW</strong>
+                </div>
+              </div>
+              <div class="mbtns" style="justify-content:space-between;align-items:center">
+                <span style="font-size:12px;color:var(--g400)">取消 →</span>
+                <div style="display:flex;gap:10px;align-items:center">
+                  <button class="mbtn-c">Cancel</button>
+                  <div style="position:relative">
+                    <button class="mbtn-s" style="padding:9px 28px;font-size:14px;box-shadow:0 3px 12px rgba(81,65,229,.55)">Submit</button>
+                    <div style="position:absolute;inset:-5px;border:2.5px solid #ef4444;border-radius:9px;animation:pulse 1.6s infinite"></div>
+                    <div style="position:absolute;top:-26px;right:0;background:#ef4444;color:#fff;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:4px;white-space:nowrap">← 点击此处完成创建</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="sc-cap">↑ 确认填写信息后，点击红框标注的「Submit」按钮完成创建；「Cancel」按钮放弃并关闭弹窗</div>
+      </div>
+
+      <ul class="ssteps">
+        <li><div class="si">1</div><div>点击 <code>Submit</code> 后弹窗自动关闭，页面回到 Service Providers 列表。</div></li>
+        <li><div class="si">2</div><div>在列表搜索框输入公司名称，确认新记录已出现，<strong>Company Type 列显示「Freight Partner」</strong>，即创建成功。</div></li>
+        <li><div class="si">3</div><div>点击进入档案详情页，URL 为 <code>core.flexport.com/partners/&lt;ID&gt;</code>，可在此继续完善 SCAC、Countries 等信息。</div></li>
+      </ul>
+
+      <div class="callout ok">
+        <span class="ci">✅</span>
+        <div><strong>创建成功标志</strong>在 Service Providers 列表搜索到该公司，Company Type 显示「<strong>Freight Partner</strong>」，即表示 Co-loader 档案创建完成。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ STEP 5 ════════ -->
+  <div class="step-card" id="s5">
+    <div class="step-hdr">
+      <div class="snum">5</div>
+      <div><div class="stag">后续操作</div><div class="stitle">上传 Co-loader 费率表（OCS Rate Manager）</div></div>
+    </div>
+    <div class="step-body">
+      <p class="step-desc">Co-loader 档案创建后，须通过 <strong>OCS Rate Manager</strong> 上传费率表。只有完成费率上传，系统才能在 Marketplace 生成该 Co-loader 的 LCL 服务 offering，进而用于正式订舱。</p>
+      <div class="url-bar"><span class="lk">🔒</span>&nbsp;https://core.flexport.com/ocs/procurement/rate_ingestion</div>
+
+      <!-- Mockup 5: Rate Manager -->
+      <div class="sc-wrap">
+        <div class="sc-bar">
+          <div class="sc-dots"><span class="dr"></span><span class="dy"></span><span class="dg"></span></div>
+          <div class="sc-url">core.flexport.com/ocs/procurement/rate_ingestion</div>
+        </div>
+        <div class="mk" style="padding:0">
+          <!-- OCS nav -->
+          <div class="fp-nav" style="height:40px">
+            <div class="fp-logo"><strong>flexport</strong><span>Ocean Consolidation Services</span></div>
+            <div class="fp-vline"></div>
+            <div class="nav-item">Offerings Admin Panel</div>
+            <div class="nav-item">Transit Times</div>
+            <div class="nav-item on">Procurement ▾</div>
+            <div class="nav-item">Recommendations</div>
+          </div>
+          <!-- Rate Manager layout -->
+          <div class="rm-layout">
+            <div class="rm-side">
+              <div class="rm-side-hdr">
+                <span class="rm-title">Rate Manager</span>
+                <div class="rm-btns">
+                  <div class="rm-btn">↻</div>
+                  <div class="rm-btn">▼</div>
+                  <div class="rm-btn plus" style="position:relative">
+                    +
+                    <div style="position:absolute;inset:-3px;border:2.5px solid #ef4444;border-radius:6px;animation:pulse 1.6s infinite"></div>
+                    <div style="position:absolute;top:-22px;right:0;background:#ef4444;color:#fff;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:3px;white-space:nowrap">点这里新建任务</div>
+                  </div>
+                  <div class="rm-btn">···</div>
+                </div>
+              </div>
+              <div class="rm-item"><div class="rm-iname">Download Offerings</div><div class="rm-imeta">Flora Zhu | Apr 15, 2026</div><div class="rm-istatus ok"><span class="d"></span>Succeeded</div></div>
+              <div class="rm-item"><div class="rm-iname">Upload Rates</div><div class="rm-imeta">Flora Zhu | Apr 15, 2026</div><div class="rm-istatus ok"><span class="d"></span>Succeeded</div></div>
+              <div class="rm-item"><div class="rm-iname">Upload Rates</div><div class="rm-imeta">Flora Zhu | Apr 15, 2026</div><div class="rm-istatus fail"><span class="d"></span>Failed</div></div>
+              <div class="rm-item"><div class="rm-iname">Upload Rates</div><div class="rm-imeta">Flora Zhu | Apr 15, 2026</div><div class="rm-istatus fail"><span class="d"></span>Failed</div></div>
+              <div class="rm-item"><div class="rm-iname">Download Offerings</div><div class="rm-imeta">Flora Zhu | Apr 8, 2026</div><div class="rm-istatus ok"><span class="d"></span>Succeeded</div></div>
+            </div>
+            <div class="rm-main">Select a task to view details</div>
+          </div>
+        </div>
+        <div class="sc-cap">↑ OCS Rate Manager（实际截图还原）— 左侧历史任务列表，左上角「+」按钮（红框）用于创建新的上传/下载任务</div>
+      </div>
+
+      <p style="font-weight:600;margin:22px 0 12px;font-size:14px;color:var(--g900)">费率上传步骤（点击「+」后的操作）：</p>
+      <ul class="ssteps">
+        <li>
+          <div class="si">①</div>
+          <div>
+            <strong>上传前准备</strong>（首次上传该 Co-loader 时必做）：
+            <br>• <a href="https://core.flexport.com/freight_routing/cfs_to_port" target="_blank" style="color:var(--blue)">CFS to Port Mappings</a> — 确认 Co-loader 港口代码已有对应 Flexport 内部代码
+            <br>• <a href="https://core.flexport.com/procurement/charge_code_mappings" target="_blank" style="color:var(--blue)">Charge Code Mappings</a> — 确认费用项名称已映射至 Flexport 标准费用项
+          </div>
+        </li>
+        <li><div class="si">②</div><div>点击 Rate Manager 左上角 <code>+</code> 按钮，弹出 Create a New Task 表单。</div></li>
+        <li><div class="si">③</div><div><code>Task Type</code> 选 <strong>Upload</strong>，<code>Content Type</code> 选 <strong>Rates</strong>，选择对应 Co-loader，填写费率有效期（Valid From / Valid To），上传 CSV 费率文件，点击 <code>Create Task</code>。</div></li>
+        <li><div class="si">④</div><div>系统后台处理任务，完成后在 Slack <code style="color:var(--blue)">#tetrominos-job-history</code> 频道收到通知。</div></li>
+        <li><div class="si">⑤</div><div>在 Rate Manager 下载输出 CSV，确认各行状态为 <code>Updated</code>。如有 <code>Failed</code> 行，修正后<strong>重新上传完整文件</strong>（系统为全量替换逻辑）。</div></li>
+      </ul>
+
+      <!-- Upload task modal mockup -->
+      <div class="sc-wrap" style="margin-top:20px">
+        <div class="sc-bar">
+          <div class="sc-dots"><span class="dr"></span><span class="dy"></span><span class="dg"></span></div>
+          <div class="sc-url">Rate Manager — 点击「+」后弹出的任务表单</div>
+        </div>
+        <div class="mk" style="padding:0">
+          <div class="modal-bg" style="background:rgba(0,0,0,.3);padding:24px 40px">
+            <div class="modal" style="width:400px">
+              <div class="modal-close">✕</div>
+              <div class="modal-title">Create a New Task</div>
+              <div class="modal-sep"></div>
+              <div class="mf">
+                <label class="ml">Task Type</label>
+                <select class="ms hl"><option selected>Upload</option><option>Download</option></select>
+                <div style="font-size:11px;color:#5141E5;font-weight:600;margin-top:4px">✅ 上传费率选 Upload</div>
+              </div>
+              <div class="mf">
+                <label class="ml">Content Type</label>
+                <select class="ms hl"><option selected>Rates</option><option>Consol Lanes</option><option>Offerings</option></select>
+                <div style="font-size:11px;color:#5141E5;font-weight:600;margin-top:4px">✅ 选 Rates（费率）</div>
+              </div>
+              <div class="mf">
+                <label class="ml">Carrier（Co-loader）</label>
+                <select class="ms"><option>— 选择刚创建的 Co-loader —</option><option>Shipco Transport</option><option selected>ECU Worldwide</option><option>AMASS Logistics</option></select>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div class="mf"><label class="ml">Valid From</label><input class="mi" type="text" placeholder="YYYY-MM-DD"></div>
+                <div class="mf"><label class="ml">Valid To</label><input class="mi" type="text" placeholder="YYYY-MM-DD"></div>
+              </div>
+              <div class="mf">
+                <label class="ml">Upload CSV File</label>
+                <div style="border:2px dashed var(--g200);border-radius:6px;padding:16px;text-align:center;color:var(--g400);font-size:13px;cursor:pointer;background:var(--g50)">
+                  📄 点击选择 Co-loader 提供的 CSV 费率文件
+                </div>
+              </div>
+              <div class="mbtns">
+                <button class="mbtn-c">Cancel</button>
+                <button class="mbtn-s">Create Task</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="sc-cap">↑ 点击「+」后弹出的任务创建表单：依次选 Upload → Rates → Co-loader → 填写有效期 → 上传 CSV → Create Task</div>
+      </div>
+
+      <div class="callout info">
+        <span class="ci">ℹ️</span>
+        <div><strong>全量替换逻辑：</strong>同一 Co-loader 同一有效期内，新上传文件将<strong>完全替换</strong>已有费率——原有航线若不在新文件中将自动归档（Archived）。因此每次上传须包含该时段内所有有效航线的完整数据。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="summary">
+    <h3>📋 完整操作流程回顾</h3>
+    <div class="sgrid">
+      <div class="sitem"><span class="sicon">1️⃣</span><div class="stext"><strong>进入 Service Providers</strong>导航至 core.flexport.com/partners，确认 Network 菜单激活</div></div>
+      <div class="sitem"><span class="sicon">2️⃣</span><div class="stext"><strong>点击 Add Service Provider</strong>左上角蓝紫色按钮，需具备 core:partner_write 权限</div></div>
+      <div class="sitem"><span class="sicon">3️⃣</span><div class="stext"><strong>填写 Co-loader 信息</strong>Type 选 Freight Partner，填写公司名称、SCAC Code、国家范围</div></div>
+      <div class="sitem"><span class="sicon">4️⃣</span><div class="stext"><strong>Submit 提交创建</strong>列表出现 Company Type = Freight Partner 记录即为成功</div></div>
+      <div class="sitem"><span class="sicon">5️⃣</span><div class="stext"><strong>上传费率表</strong>Rate Manager 中新建 Upload Rates 任务，上传 Co-loader CSV 费率文件</div></div>
+      <div class="sitem"><span class="sicon">✅</span><div class="stext"><strong>全部完成</strong>费率上传成功后，Marketplace 生成 LCL offering，可正式用于订舱</div></div>
+    </div>
+  </div>
+
+  <!-- REFS -->
+  <div class="refs">
+    <h3>参考文档</h3>
+    <ul class="rlist">
+      <li><span>[1]</span><a href="https://flexport.atlassian.net/wiki/spaces/EN/pages/3703177283/Freight+Partner+Documentation" target="_blank">Freight Partner Documentation — Confluence EN Space</a>（Co-loader 类型定义、Core UI 说明、core:partner_write 权限说明）</li>
+      <li><span>[2]</span><a href="https://flexport.atlassian.net/wiki/spaces/EN/pages/3463217301/LCL+Co-loader+Rate+Ingestion+User+Guide" target="_blank">LCL Co-loader Rate Ingestion User Guide — Confluence EN Space</a>（Rate Manager 操作步骤、CSV 格式、端口映射）</li>
+      <li><span>[3]</span><a href="https://flexport.atlassian.net/wiki/spaces/KB/pages/448495985/Core+User+Guide" target="_blank">Core User Guide — Service Providers 章节</a></li>
+      <li><span>[4]</span><a href="https://flexport.atlassian.net/wiki/spaces/KB/pages/2311947348/Trucking+Carrier+Onboarding" target="_blank">Trucking Carrier Onboarding — 含 Add Service Provider 按钮步骤截图</a></li>
+      <li><span>[5]</span><a href="https://core.flexport.com/partners" target="_blank">直达链接：core.flexport.com/partners（Service Providers 列表）</a></li>
+      <li><span>[6]</span><a href="https://core.flexport.com/ocs/procurement/rate_ingestion" target="_blank">直达链接：OCS Rate Manager（费率上传）</a></li>
+    </ul>
+  </div>
+
+</div>
+</body>
+</html>
